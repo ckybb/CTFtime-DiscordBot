@@ -88,7 +88,7 @@ async def get_rist(interaction: discord.Interaction):
 
 @tree.command(name='shutdown', description='botを終了します。bot管理者のみ実行可能です。')
 async def shutdown(interaction: discord.Interaction): 
-    if interaction.user.id == 214301138151931904:
+    if interaction.user.id == config.ownerid:
         await interaction.response.send_message('Botを停止します。')
         print('received shutdown command.')
         await client.close()
