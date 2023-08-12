@@ -14,7 +14,15 @@ JST = zoneinfo.ZoneInfo('Asia/Tokyo')
 intents = discord.Intents.default()
 client = discord.Client(intents=intents)
 tree = app_commands.CommandTree(client)
+evecfg = False
 
+@tree.command(name='eventcfg', description='eventコマンドのdescriptionを有効にするか設定します。')
+async def set_eventcfg(interaction: discord.Interaction, value: bool):
+    evecfg = value
+    if evecfg:
+        await interaction.response.send_message('descriptionを有効にしました。')
+    else:
+        await interaction.response.send_message('descriptionを無効にしました。')
 
 @tree.command(name='event', description='現在から一週間後までで開催予定のCTF一覧を取得します。(最大10件)')
 async def get_event(interaction: discord.Interaction):
@@ -30,7 +38,10 @@ async def get_event(interaction: discord.Interaction):
         for i in range(n):
             starttime = dd.fromisoformat(data[i]["start"]).astimezone(JST)
             finishtime = dd.fromisoformat(data[i]["finish"]).astimezone(JST)
-            embed = discord.Embed(title=data[i]["title"], color=0x00ff00, description=data[i]["description"][:2048], url=data[i]["url"])
+            if evecfg:
+                embed = discord.Embed(title=data[i]["title"], color=0x00ff00, description=data[i]["description"][:2048], url=data[i]["url"])
+            else:
+                embed = discord.Embed(title=data[i]["title"], color=0x00ff00, url=data[i]["url"])
             embed.set_thumbnail(url=data[i]["logo"])
             embed.add_field(name='主催', value=data[i]["organizers"][0]["name"])
             if data[i]["location"] == "":
@@ -47,6 +58,25 @@ async def get_event(interaction: discord.Interaction):
             embeds.append(embed)
 
         await interaction.followup.send(f'{n}件開催予定です:\n', embeds=embeds)
+
+@tree.command(name='description', description='CTF一覧の説明のみ表示します。')
+async def get_description(interaction: discord.Interaction):
+    await interaction.response.defer()
+    tstamp = int(time.time())
+    res = requests.get(f'https://ctftime.org/api/v1/events/?limit=10&start={tstamp}&finish={tstamp+604800}', headers=header)
+    if res.status_code != 200:
+        await interaction.followup.send(f'取得できませんでした。status_code: {res.status_code}')
+    else:
+        data = res.json()
+        n = len(data)
+        embeds = []
+        for i in range(n):
+            embed = discord.Embed(title=data[i]["title"], color=0x00ff00, description=data[i]["description"][:2048], url=data[i]["url"])
+            embed.set_thumbnail(url=data[i]["logo"])
+            embeds.append(embed)
+
+        await interaction.followup.send(f'{n}件開催予定です:\n', embeds=embeds)
+
 
 @tree.command(name='team', description='チームの情報を取得します。(RiST: 42506)')
 async def get_team(interaction: discord.Interaction, id: int):
