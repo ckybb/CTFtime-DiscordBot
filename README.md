@@ -1,7 +1,10 @@
 # CTFtime-DiscordBot
 テスト段階です
 ## 環境
-Python 3.11.4 (zoneinfoを使用している関係上、3.9以上が要件です)
+Ryeを使用しています。Ryeを導入している場合、`rye sync`のみで環境が揃います。
+
+
+Python 3.12.3 (zoneinfoを使用している関係上、3.9以上が要件です)
 
 `pip install requests`
 
